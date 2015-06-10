@@ -30,14 +30,14 @@ NTP::NTP(Socket* sock, uint8_t server[4], int8_t zone) :
 
 NTP::~NTP()
 {
-  if (m_sock == NULL) return;
+  if (UNLIKELY(m_sock == NULL)) return;
   m_sock->close();
 }
 
 clock_t
 NTP::time()
 {
-  if (m_sock == NULL) return (ENOTSOCK);
+  if (UNLIKELY(m_sock == NULL)) return (ENOTSOCK);
   const int PACKET_MAX = 48;
   uint8_t packet[PACKET_MAX];
   int res;
@@ -55,7 +55,7 @@ NTP::time()
   uint8_t dest[4];
   uint16_t port;
   res = m_sock->recv(packet, sizeof(packet), dest, port);
-  if (res != sizeof(packet)) return (0L);
+  if (UNLIKELY(res != sizeof(packet))) return (0L);
   int32_t* tp = (int32_t*) &packet[40];
   return (ntoh(*tp) + (m_zone * 3600L));
 }
@@ -64,7 +64,7 @@ int
 NTP::gettimeofday(time_t& time)
 {
   clock_t clock = this->time();
-  if (clock == 0L) return (EINVAL);
+  if (UNLIKELY(clock == 0L)) return (EINVAL);
   time = clock;
   return (0);
 }
