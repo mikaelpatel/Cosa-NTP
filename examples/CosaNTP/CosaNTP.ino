@@ -39,6 +39,9 @@
 // W5100 Ethernet Controller with default mac
 W5100 ethernet;
 
+// Wall-clock
+Clock clock;
+
 // NTP server
 #define NTP_SERVER "se.pool.ntp.org"
 
@@ -48,7 +51,7 @@ void setup()
   uart.begin(9600);
   trace.begin(&uart, PSTR("CosaNTP: started"));
   Watchdog::begin();
-  RTC::begin();
+  RTC::begin(&clock);
 
   time_t::epoch_year( NTP_EPOCH_YEAR );
   time_t::epoch_weekday = NTP_EPOCH_WEEKDAY;
@@ -77,19 +80,19 @@ void loop()
 
   // Get current time. Allow a number of retries
   const uint8_t RETRY_MAX = 20;
-  clock_t clock;
+  clock_t now;
   for (uint8_t retry = 0; retry < RETRY_MAX; retry++)
-    if ((clock = ntp.time()) != 0L) break;
-  ASSERT(clock != 0L);
+    if ((now = ntp.time()) != 0L) break;
+  ASSERT(now != 0L);
 
   // Check if the RTC should be set
   if (!initiated) {
-    RTC::time(clock);
+    clock.time(now);
     initiated = true;
   }
 
   // Get real-time clock and convert to time structure
-  time_t rtc(RTC::seconds());
+  time_t rtc(clock.time());
   uint16_t ms = RTC::millis() % 1000;
 
   // Print server
@@ -97,11 +100,11 @@ void loop()
   trace << PSTR(": ");
 
   // Print in stardate notation; dayno.secondno
-  trace << (clock / SECONDS_PER_DAY) << '.' << (clock % SECONDS_PER_DAY) << ' ';
+  trace << (now / SECONDS_PER_DAY) << '.' << (now % SECONDS_PER_DAY) << ' ';
 
   // Convert to time structure and print day followed by date and time
-  time_t now(clock);
-  trace << now.day << ' ' << now << ' ' << rtc << '.';
+  time_t daytime(now);
+  trace << daytime.day << ' ' << now << ' ' << rtc << '.';
   if (ms < 100) trace << '0';
   if (ms < 10) trace << '0';
   trace << ms << endl;
