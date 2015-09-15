@@ -40,7 +40,7 @@
 W5100 ethernet;
 
 // Wall-clock
-Clock clock;
+RTC::Clock clock;
 
 // NTP server
 #define NTP_SERVER "se.pool.ntp.org"
@@ -51,7 +51,7 @@ void setup()
   uart.begin(9600);
   trace.begin(&uart, PSTR("CosaNTP: started"));
   Watchdog::begin();
-  RTC::begin(&clock);
+  RTC::begin();
 
   time_t::epoch_year( NTP_EPOCH_YEAR );
   time_t::epoch_weekday = NTP_EPOCH_WEEKDAY;
