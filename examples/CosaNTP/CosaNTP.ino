@@ -31,7 +31,7 @@
 #include "Cosa/Watchdog.hh"
 #include "Cosa/Trace.hh"
 #include "Cosa/IOStream/Driver/UART.hh"
-#include "Cosa/RTC.hh"
+#include "Cosa/RTT.hh"
 
 // Time-zone; GMT+1, Stockholm
 #define ZONE 1
@@ -40,7 +40,7 @@
 W5100 ethernet;
 
 // Wall-clock
-RTC::Clock clock;
+RTT::Clock clock;
 
 // NTP server
 #define NTP_SERVER "se.pool.ntp.org"
@@ -51,14 +51,14 @@ void setup()
   uart.begin(9600);
   trace.begin(&uart, PSTR("CosaNTP: started"));
   Watchdog::begin();
-  RTC::begin();
+  RTT::begin();
 
   time_t::epoch_year( NTP_EPOCH_YEAR );
   time_t::epoch_weekday = NTP_EPOCH_WEEKDAY;
   time_t::pivot_year = 37; // 1937..2036 range
 
   // Note: This could also use_fastest_epoch if the clock_t offset was calculated
-  // when the RTC is initiated.  NTP::gettimeofday would need modification.
+  // when the RTT is initiated.  NTP::gettimeofday would need modification.
 
   // Initiate the Ethernet Controller using DHCP
   ASSERT(ethernet.begin_P(PSTR("CosaNTPclient")));
@@ -85,7 +85,7 @@ void loop()
     if ((now = ntp.time()) != 0L) break;
   ASSERT(now != 0L);
 
-  // Check if the RTC should be set
+  // Check if the RTT should be set
   if (!initiated) {
     clock.time(now);
     initiated = true;
@@ -93,7 +93,7 @@ void loop()
 
   // Get real-time clock and convert to time structure
   time_t rtc(clock.time());
-  uint16_t ms = RTC::millis() % 1000;
+  uint16_t ms = RTT::millis() % 1000;
 
   // Print server
   INET::print_addr(trace, server);
