@@ -26,7 +26,9 @@
 #include <DNS.h>
 #include <DHCP.h>
 #include <NTP.h>
+#include <W5X00.h>
 #include <W5100.h>
+// #include <W5200.h>
 
 #include "Cosa/Watchdog.hh"
 #include "Cosa/Trace.hh"
@@ -38,6 +40,7 @@
 
 // W5100 Ethernet Controller with default mac
 W5100 ethernet;
+// W5200 ethernet;
 
 // Wall-clock
 RTT::Clock clock;
@@ -71,7 +74,7 @@ void loop()
 
   // Use DNS to get the NTP server network address
   DNS dns;
-  ethernet.get_dns_addr(server);
+  ethernet.dns_addr(server);
   if (!dns.begin(ethernet.socket(Socket::UDP), server)) return;
   if (dns.gethostbyname_P(PSTR(NTP_SERVER), server) != 0) return;
 
