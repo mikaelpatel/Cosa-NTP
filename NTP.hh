@@ -30,6 +30,10 @@
  * Used for clock synchronization between computer systems over
  * packet-switched, variable-latency data networks. Note: this
  * implementation does not adjust for clock drift or network latency.
+ *
+ * @section References
+ * 1. Network Time Protocol Version 4: Protocol and Algorithms
+ * Specification, June 2010, http://www.ietf.org/rfc/rfc5905.txt.
  */
 class NTP {
 public:
@@ -60,7 +64,39 @@ public:
    */
   int gettimeofday(time_t& time);
 
-private:
+protected:
+  /**
+   * NTP Timestamp Format, fig. 3, pp. 13.
+   */
+  struct timestamp_t {
+    uint32_t seconds;
+    uint32_t fraction;
+  };
+
+  /**
+   * NTP UDP datagram packet, fig. 8, pp. 18.
+   */
+  struct ntp_t {
+    uint8_t mode:3;		//!< Association Mode (fig. 10).
+    uint8_t version:3;		//!< Version Number (currently 4).
+    uint8_t leap:2;		//!< Leap Indicator (fig. 9).
+    uint8_t stratum;		//!< Packet Stratum (fig. 11).
+    int8_t poll;		//!< Poll interval in log2 seconds.
+    int8_t precision;		//!< Precision in log2 seconds (-18 is us).
+    uint32_t rootdelay;		//!< Root delay.
+    uint32_t rootdisp;		//!< Root dispersion.
+    uint32_t refid;		//!< Reference ID.
+    timestamp_t ref;		//!< Reference timestamp.
+    timestamp_t org;		//!< Origin timestamp.
+    timestamp_t rec;		//!< Receive timestamp.
+    timestamp_t xmt;		//!< Transmit timestamp.
+
+    ntp_t()
+    {
+      memset(this, 0, sizeof(ntp_t));
+    }
+  };
+
   /** NTP server port. */
   static const uint16_t PORT = 123;
 

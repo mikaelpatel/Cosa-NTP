@@ -38,26 +38,22 @@ clock_t
 NTP::time()
 {
   if (UNLIKELY(m_sock == NULL)) return (ENOTSOCK);
-  const int PACKET_MAX = 48;
-  uint8_t packet[PACKET_MAX];
+  ntp_t msg;
   int res;
-  memset(packet, 0, PACKET_MAX);
-  packet[0] = 0b11100011;
-  packet[1] = 0;
-  packet[2] = 6;
-  packet[3] = 0xEC;
-  packet[12] = 49;
-  packet[13] = 0x4E;
-  packet[14] = 49;
-  packet[15] = 52;
-  res = m_sock->send(packet, sizeof(packet), m_server, PORT);
+  msg.leap = 3;			// Clock unsynchronized
+  msg.version = 4;		// NTP version 4
+  msg.mode = 3;			// Client mode
+  msg.refid = 0x41534f43;	// COSA
+  msg.poll = 6;			// 2**6 = 64 seconds interval
+  msg.precision = -20;		// 2**-20 = 0.954 us precision
+  res = m_sock->send(&msg, sizeof(msg), m_server, PORT);
+  if (UNLIKELY(res != sizeof(msg))) return (0L);
   delay(TIMEOUT);
-  uint8_t dest[4];
+  uint8_t src[4];
   uint16_t port;
-  res = m_sock->recv(packet, sizeof(packet), dest, port);
-  if (UNLIKELY(res != sizeof(packet))) return (0L);
-  int32_t* tp = (int32_t*) &packet[40];
-  return (ntoh(*tp) + (m_zone * 3600L));
+  res = m_sock->recv(&msg, sizeof(msg), src, port);
+  if (UNLIKELY(res != sizeof(msg))) return (0L);
+  return (ntoh(msg.xmt.seconds) + (m_zone * 3600L));
 }
 
 int
