@@ -81,8 +81,8 @@ protected:
     uint8_t version:3;		//!< Version Number (currently 4).
     uint8_t leap:2;		//!< Leap Indicator (fig. 9).
     uint8_t stratum;		//!< Packet Stratum (fig. 11).
-    int8_t poll;		//!< Poll interval in log2 seconds.
-    int8_t precision;		//!< Precision in log2 seconds (-18 is us).
+    int8_t poll;		//!< Poll interval in log2 seconds (6..10).
+    int8_t precision;		//!< Precision in log2 seconds (-20 is us).
     uint32_t rootdelay;		//!< Root delay.
     uint32_t rootdisp;		//!< Root dispersion.
     uint32_t refid;		//!< Reference ID.
